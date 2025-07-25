@@ -93,6 +93,64 @@ export const GameBoard = ({ gameStatus: initialGameStatus, isLoading, error }: G
     } : null);
   };
 
+  const handleNextRound = () => {
+    if (!gameStatus) return;
+
+    // Sample puzzles for different rounds
+    const puzzles = [
+      {
+        solution: "THE QUICK BROWN FOX",
+        category: "PHRASE",
+        display: "_ _ _   _ _ _ _ _   _ _ _ _ _   _ _ _"
+      },
+      {
+        solution: "WHEEL OF FORTUNE",
+        category: "TV SHOW",
+        display: "_ _ _ _ _   _ _   _ _ _ _ _ _ _"
+      },
+      {
+        solution: "GOOD MORNING AMERICA",
+        category: "TV SHOW", 
+        display: "_ _ _ _   _ _ _ _ _ _ _   _ _ _ _ _ _ _"
+      },
+      {
+        solution: "PIZZA AND FRENCH FRIES",
+        category: "FOOD & DRINK",
+        display: "_ _ _ _ _   _ _ _   _ _ _ _ _ _   _ _ _ _ _"
+      },
+      {
+        solution: "AROUND THE WORLD",
+        category: "PHRASE",
+        display: "_ _ _ _ _ _   _ _ _   _ _ _ _ _"
+      }
+    ];
+
+    const newRoundNumber = gameStatus.current_round + 1;
+    const puzzleIndex = (newRoundNumber - 1) % puzzles.length; // Cycle through puzzles
+    const newPuzzle = puzzles[puzzleIndex];
+
+    setGameStatus(prev => prev ? {
+      ...prev,
+      current_round: newRoundNumber,
+      game_state: 'IN_PROGRESS' as const,
+      turn_state: 'WAITING_FOR_SPIN' as const,
+      teams: prev.teams.map((team, index) => ({
+        ...team,
+        current_round_money: 0, // Reset round money but keep total
+        is_current_turn: index === 0 // First team starts the new round
+      })),
+      current_puzzle: {
+        solution: newPuzzle.solution,
+        category: newPuzzle.category,
+        guessed_letters: [],
+        display: newPuzzle.display,
+        available_consonants: ["B", "C", "D", "F", "G", "J", "K", "L", "M", "N", "P", "Q", "R", "S", "T", "V", "W", "X", "Y", "Z"],
+        available_vowels: ["A", "E", "I", "O", "U"]
+      },
+      last_wheel_result: undefined // Clear previous wheel result
+    } : null);
+  };
+
   const isPuzzleComplete = (solution: string, guessedLetters: string[]) => {
     // Get all unique letters from the solution (only alphabetic characters)
     const solutionLetters = [...new Set(
@@ -311,6 +369,7 @@ export const GameBoard = ({ gameStatus: initialGameStatus, isLoading, error }: G
             onNextTeam={handleNextTeam}
             onGuessLetter={handleGuessLetter}
             onSolve={handleSolve}
+            onNextRound={handleNextRound}
           />
         )}
 

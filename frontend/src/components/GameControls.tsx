@@ -8,9 +8,10 @@ interface GameControlsProps {
   onGuessLetter?: (letter: string) => void;
   onSolve?: (solution: string) => void;
   onNextTeam?: () => void;
+  onNextRound?: () => void;
 }
 
-export const GameControls = ({ gameStatus, onSpin, onWheelSelect, onGuessLetter, onSolve, onNextTeam }: GameControlsProps) => {
+export const GameControls = ({ gameStatus, onSpin, onWheelSelect, onGuessLetter, onSolve, onNextTeam, onNextRound }: GameControlsProps) => {
   const [selectedLetter, setSelectedLetter] = useState('');
   const [solutionGuess, setSolutionGuess] = useState('');
   const [showSolveInput, setShowSolveInput] = useState(false);
@@ -180,6 +181,30 @@ export const GameControls = ({ gameStatus, onSpin, onWheelSelect, onGuessLetter,
                   </div>
                 );
               })}
+          </div>
+          
+          {/* Next Round or Game Complete Button */}
+          <div className="text-center mt-6">
+            {gameStatus.current_round < gameStatus.total_rounds ? (
+              <button
+                onClick={onNextRound}
+                className="btn-primary text-lg px-8 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
+              >
+                Next Round ({gameStatus.current_round + 1}/{gameStatus.total_rounds}) →
+              </button>
+            ) : (
+              <div className="space-y-3">
+                <div className="text-2xl font-bold text-green-600">
+                  🎊 GAME COMPLETE! 🎊
+                </div>
+                <p className="text-gray-600">
+                  All {gameStatus.total_rounds} rounds completed!
+                </p>
+                <p className="text-sm text-gray-500">
+                  Congratulations to all players!
+                </p>
+              </div>
+            )}
           </div>
         </div>
       )}

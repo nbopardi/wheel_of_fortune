@@ -19,12 +19,11 @@ function App() {
       current_puzzle: {
         solution: "THE QUICK BROWN FOX",
         category: "PHRASE",
-        guessed_letters: ["T", "H", "E", "R", "S"],
-        display: "THE _ _ _ _ _   _ R _ _ _   _ _ _",
-        available_consonants: ["B", "C", "D", "F", "G", "J", "K", "L", "M", "N", "P", "Q", "V", "W", "X", "Y", "Z"],
-        available_vowels: ["A", "I", "O", "U"]
-      },
-      last_wheel_result: 500
+        guessed_letters: [],
+        display: "_ _ _   _ _ _ _ _   _ _ _ _ _   _ _ _",
+        available_consonants: ["B", "C", "D", "F", "G", "J", "K", "L", "M", "N", "P", "Q", "R", "S", "T", "V", "W", "X", "Y", "Z"],
+        available_vowels: ["A", "E", "I", "O", "U"]
+      }
     };
 
     setGameStatus(newGameStatus);
