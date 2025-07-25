@@ -56,6 +56,53 @@ export const GameBoard = ({ gameStatus: initialGameStatus, isLoading, error }: G
     } : null);
   };
 
+  const completeRound = () => {
+    if (!gameStatus) return;
+
+    // Transfer current round money to total money for all teams
+    const updatedTeams = gameStatus.teams.map(team => ({
+      ...team,
+      total_money: team.total_money + team.current_round_money,
+      current_round_money: 0 // Reset round money
+    }));
+
+    // Find the maximum total money
+    const maxMoney = Math.max(...updatedTeams.map(team => team.total_money));
+    
+    // Find all teams with the maximum money (handles ties)
+    const winners = updatedTeams.filter(team => team.total_money === maxMoney);
+    
+    // For display purposes, use the first winner (or solving team if they're tied for first)
+    const solvingTeam = updatedTeams.find(team => team.is_current_turn);
+    const primaryWinner = winners.includes(solvingTeam!) ? solvingTeam! : winners[0];
+
+    // Reveal all letters
+    const allLetters = gameStatus.current_puzzle.solution.split('').filter(char => char.match(/[A-Z]/i));
+    
+    setGameStatus(prev => prev ? {
+      ...prev,
+      current_puzzle: {
+        ...prev.current_puzzle,
+        guessed_letters: allLetters.map(l => l.toUpperCase())
+      },
+      teams: updatedTeams.map(team => ({
+        ...team,
+        is_current_turn: team.team_id === primaryWinner.team_id // Mark primary winner as current
+      })),
+      game_state: 'ROUND_COMPLETED' as const
+    } : null);
+  };
+
+  const isPuzzleComplete = (solution: string, guessedLetters: string[]) => {
+    // Get all unique letters from the solution (only alphabetic characters)
+    const solutionLetters = [...new Set(
+      solution.toUpperCase().split('').filter(char => char.match(/[A-Z]/))
+    )];
+    
+    // Check if all solution letters have been guessed
+    return solutionLetters.every(letter => guessedLetters.includes(letter));
+  };
+
   const handleGuessLetter = (letter: string) => {
     if (!gameStatus || !gameStatus.current_puzzle) return;
 
@@ -81,6 +128,12 @@ export const GameBoard = ({ gameStatus: initialGameStatus, isLoading, error }: G
         moneyChange = gameStatus.last_wheel_result * letterCount; // Earn money for consonants
       }
 
+      // Create the new guessed letters array
+      const newGuessedLetters = [...puzzle.guessed_letters, letter.toUpperCase()];
+
+      // Check if puzzle is now complete
+      const puzzleComplete = isPuzzleComplete(puzzle.solution, newGuessedLetters);
+
       // Add letter to guessed letters and show as newly revealed
       setNewlyRevealedLetters([letter.toUpperCase()]);
       
@@ -88,24 +141,51 @@ export const GameBoard = ({ gameStatus: initialGameStatus, isLoading, error }: G
         setNewlyRevealedLetters([]);
       }, 2000);
 
-      setGameStatus(prev => prev ? {
-        ...prev,
-        current_puzzle: {
-          ...prev.current_puzzle,
-          guessed_letters: [...prev.current_puzzle.guessed_letters, letter.toUpperCase()],
-          available_consonants: prev.current_puzzle.available_consonants.filter(l => l !== letter.toUpperCase()),
-          available_vowels: prev.current_puzzle.available_vowels.filter(l => l !== letter.toUpperCase())
-        },
-        teams: prev.teams.map(team => 
-          team.is_current_turn 
-            ? { 
-                ...team, 
-                current_round_money: Math.max(0, team.current_round_money + moneyChange) // Ensure money doesn't go negative
-              }
-            : team
-        ),
-        turn_state: 'WAITING_FOR_SPIN' // Player continues
-      } : null);
+      if (puzzleComplete) {
+        // Update the game state with the final letter, then complete the round
+        setGameStatus(prev => prev ? {
+          ...prev,
+          current_puzzle: {
+            ...prev.current_puzzle,
+            guessed_letters: newGuessedLetters,
+            available_consonants: prev.current_puzzle.available_consonants.filter(l => l !== letter.toUpperCase()),
+            available_vowels: prev.current_puzzle.available_vowels.filter(l => l !== letter.toUpperCase())
+          },
+          teams: prev.teams.map(team => 
+            team.is_current_turn 
+              ? { 
+                  ...team, 
+                  current_round_money: Math.max(0, team.current_round_money + moneyChange)
+                }
+              : team
+          )
+        } : null);
+
+        // Complete the round after a short delay to show the final letter
+        setTimeout(() => {
+          completeRound();
+        }, 1000);
+      } else {
+        // Normal letter guess - continue playing
+        setGameStatus(prev => prev ? {
+          ...prev,
+          current_puzzle: {
+            ...prev.current_puzzle,
+            guessed_letters: newGuessedLetters,
+            available_consonants: prev.current_puzzle.available_consonants.filter(l => l !== letter.toUpperCase()),
+            available_vowels: prev.current_puzzle.available_vowels.filter(l => l !== letter.toUpperCase())
+          },
+          teams: prev.teams.map(team => 
+            team.is_current_turn 
+              ? { 
+                  ...team, 
+                  current_round_money: Math.max(0, team.current_round_money + moneyChange)
+                }
+              : team
+          ),
+          turn_state: 'WAITING_FOR_SPIN' // Player continues
+        } : null);
+      }
     } else {
       // Letter not in puzzle - still deduct vowel cost if applicable, then end turn
       let moneyChange = 0;
@@ -139,38 +219,7 @@ export const GameBoard = ({ gameStatus: initialGameStatus, isLoading, error }: G
     const isCorrect = solution.toUpperCase() === gameStatus.current_puzzle.solution.toUpperCase();
 
     if (isCorrect) {
-      // Transfer current round money to total money for all teams
-      const updatedTeams = gameStatus.teams.map(team => ({
-        ...team,
-        total_money: team.total_money + team.current_round_money,
-        current_round_money: 0 // Reset round money
-      }));
-
-      // Find the maximum total money
-      const maxMoney = Math.max(...updatedTeams.map(team => team.total_money));
-      
-      // Find all teams with the maximum money (handles ties)
-      const winners = updatedTeams.filter(team => team.total_money === maxMoney);
-      
-      // For display purposes, use the first winner (or solving team if they're tied for first)
-      const solvingTeam = updatedTeams.find(team => team.is_current_turn);
-      const primaryWinner = winners.includes(solvingTeam!) ? solvingTeam! : winners[0];
-
-      // Reveal all letters
-      const allLetters = gameStatus.current_puzzle.solution.split('').filter(char => char.match(/[A-Z]/i));
-      
-      setGameStatus(prev => prev ? {
-        ...prev,
-        current_puzzle: {
-          ...prev.current_puzzle,
-          guessed_letters: allLetters.map(l => l.toUpperCase())
-        },
-        teams: updatedTeams.map(team => ({
-          ...team,
-          is_current_turn: team.team_id === primaryWinner.team_id // Mark primary winner as current
-        })),
-        game_state: 'ROUND_COMPLETED' as const
-      } : null);
+      completeRound();
     } else {
       // Wrong solution - end turn
       setGameStatus(prev => prev ? {
