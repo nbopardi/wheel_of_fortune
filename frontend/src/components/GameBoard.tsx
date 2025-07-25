@@ -10,6 +10,25 @@ interface GameBoardProps {
   error?: string | null;
 }
 
+// Helper function to convert status codes to human-readable text
+const getHumanReadableStatus = (gameState: string, turnState: string) => {
+  const gameStateText = {
+    'SETUP': 'Setting Up',
+    'IN_PROGRESS': 'In Progress',
+    'ROUND_COMPLETED': 'Round Complete',
+    'GAME_COMPLETED': 'Game Complete'
+  }[gameState] || gameState;
+
+  const turnStateText = {
+    'WAITING_FOR_SPIN': 'Ready to Spin',
+    'WAITING_FOR_LETTER_GUESS': 'Choose a Letter',
+    'WAITING_FOR_SOLVE_ATTEMPT': 'Ready to Solve',
+    'TURN_ENDED': 'Turn Complete'
+  }[turnState] || turnState;
+
+  return { gameStateText, turnStateText };
+};
+
 export const GameBoard = ({ gameStatus: initialGameStatus, isLoading, error }: GameBoardProps) => {
   // Local state for demo functionality
   const [gameStatus, setGameStatus] = useState(initialGameStatus);
@@ -334,6 +353,8 @@ export const GameBoard = ({ gameStatus: initialGameStatus, isLoading, error }: G
     );
   }
 
+  const { gameStateText, turnStateText } = getHumanReadableStatus(gameStatus.game_state, gameStatus.turn_state);
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
@@ -344,7 +365,7 @@ export const GameBoard = ({ gameStatus: initialGameStatus, isLoading, error }: G
             Round {gameStatus.current_round} of {gameStatus.total_rounds}
           </p>
           <p className="text-sm text-gray-500 capitalize">
-            {gameStatus.game_state.replace('_', ' ').toLowerCase()} • {gameStatus.turn_state.replace('_', ' ').toLowerCase()}
+            {gameStateText} • {turnStateText}
           </p>
         </div>
 
@@ -377,10 +398,10 @@ export const GameBoard = ({ gameStatus: initialGameStatus, isLoading, error }: G
         <div className="bg-white rounded-lg p-4 shadow-sm mt-6">
           <div className="flex justify-between items-center">
             <div className="text-sm text-gray-600">
-              <span className="font-medium">Game State:</span> {gameStatus.game_state.replace('_', ' ')}
+              <span className="font-medium">Game State:</span> {gameStateText}
             </div>
             <div className="text-sm text-gray-600">
-              <span className="font-medium">Turn State:</span> {gameStatus.turn_state.replace('_', ' ')}
+              <span className="font-medium">Turn State:</span> {turnStateText}
             </div>
             {gameStatus.last_wheel_result && (
               <div className="text-sm text-gray-600">

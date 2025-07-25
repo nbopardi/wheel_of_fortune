@@ -11,6 +11,18 @@ interface GameControlsProps {
   onNextRound?: () => void;
 }
 
+// Helper function to convert turn state to human-readable text
+const getTurnStateText = (turnState: string) => {
+  const turnStateText = {
+    'WAITING_FOR_SPIN': 'Ready to Spin',
+    'WAITING_FOR_LETTER_GUESS': 'Choose a Letter',
+    'WAITING_FOR_SOLVE_ATTEMPT': 'Ready to Solve',
+    'TURN_ENDED': 'Turn Complete'
+  }[turnState] || turnState;
+
+  return turnStateText;
+};
+
 export const GameControls = ({ gameStatus, onSpin, onWheelSelect, onGuessLetter, onSolve, onNextTeam, onNextRound }: GameControlsProps) => {
   const [selectedLetter, setSelectedLetter] = useState('');
   const [solutionGuess, setSolutionGuess] = useState('');
@@ -115,7 +127,7 @@ export const GameControls = ({ gameStatus, onSpin, onWheelSelect, onGuessLetter,
               {currentTeam.name}'s Turn
             </h3>
             <p className="text-gray-600 capitalize">
-              {turn_state.replace('_', ' ').toLowerCase()}
+              {getTurnStateText(turn_state)}
             </p>
             <p className="text-sm text-gray-600 mt-1">
               Round Money: ${currentTeam.current_round_money} | Total: ${currentTeam.total_money}
