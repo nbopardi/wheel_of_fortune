@@ -139,15 +139,37 @@ export const GameBoard = ({ gameStatus: initialGameStatus, isLoading, error }: G
     const isCorrect = solution.toUpperCase() === gameStatus.current_puzzle.solution.toUpperCase();
 
     if (isCorrect) {
+      // Transfer current round money to total money for all teams
+      const updatedTeams = gameStatus.teams.map(team => ({
+        ...team,
+        total_money: team.total_money + team.current_round_money,
+        current_round_money: 0 // Reset round money
+      }));
+
+      // Find the maximum total money
+      const maxMoney = Math.max(...updatedTeams.map(team => team.total_money));
+      
+      // Find all teams with the maximum money (handles ties)
+      const winners = updatedTeams.filter(team => team.total_money === maxMoney);
+      
+      // For display purposes, use the first winner (or solving team if they're tied for first)
+      const solvingTeam = updatedTeams.find(team => team.is_current_turn);
+      const primaryWinner = winners.includes(solvingTeam!) ? solvingTeam! : winners[0];
+
       // Reveal all letters
       const allLetters = gameStatus.current_puzzle.solution.split('').filter(char => char.match(/[A-Z]/i));
+      
       setGameStatus(prev => prev ? {
         ...prev,
         current_puzzle: {
           ...prev.current_puzzle,
           guessed_letters: allLetters.map(l => l.toUpperCase())
         },
-        game_state: 'ROUND_COMPLETED'
+        teams: updatedTeams.map(team => ({
+          ...team,
+          is_current_turn: team.team_id === primaryWinner.team_id // Mark primary winner as current
+        })),
+        game_state: 'ROUND_COMPLETED' as const
       } : null);
     } else {
       // Wrong solution - end turn
@@ -233,7 +255,7 @@ export const GameBoard = ({ gameStatus: initialGameStatus, isLoading, error }: G
         )}
 
         {/* Game Controls */}
-        {gameStatus.game_state === 'IN_PROGRESS' && (
+        {(gameStatus.game_state === 'IN_PROGRESS' || gameStatus.game_state === 'ROUND_COMPLETED') && (
           <GameControls
             gameStatus={gameStatus}
             onWheelSelect={handleWheelSelect}
