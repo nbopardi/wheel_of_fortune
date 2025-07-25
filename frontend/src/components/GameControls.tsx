@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { GameStatus } from '../types/game';
+import { useSounds } from '../hooks/useSounds';
 
 interface GameControlsProps {
   gameStatus: GameStatus;
@@ -29,11 +30,27 @@ export const GameControls = ({ gameStatus, onSpin, onWheelSelect, onGuessLetter,
   const [showSolveInput, setShowSolveInput] = useState(false);
   const [showWheelOptions, setShowWheelOptions] = useState(false);
 
+  const { playSound, stopLoopingSounds } = useSounds();
+
   // Wheel values that can be selected
   const wheelValues = [500, 600, 700, 800, 900, 1000, 1500, 2000, 'BANKRUPT', 'LOSE A TURN'];
 
   const { current_puzzle, turn_state, teams, game_state } = gameStatus;
   const currentTeam = teams.find(team => team.is_current_turn);
+
+  // Play appropriate background sounds based on turn state and UI state
+  useEffect(() => {
+    if (turn_state === 'WAITING_FOR_SPIN' && !showWheelOptions) {
+      // Play toss_up sound when waiting for wheel spin (but not when showing wheel options)
+      playSound('toss_up');
+    } else if (turn_state === 'WAITING_FOR_LETTER_GUESS') {
+      // Play choose_letters sound when waiting for letter selection
+      playSound('choose_letters');
+    } else {
+      // Stop looping sounds for other states or when showing wheel options
+      stopLoopingSounds();
+    }
+  }, [turn_state, showWheelOptions, playSound, stopLoopingSounds]);
 
   if (!current_puzzle || !currentTeam) {
     return null;
@@ -46,10 +63,15 @@ export const GameControls = ({ gameStatus, onSpin, onWheelSelect, onGuessLetter,
   const roundCompleted = game_state === 'ROUND_COMPLETED';
 
   const handleShowWheelOptions = () => {
+    // Stop toss_up sound immediately when showing wheel options
+    stopLoopingSounds();
     setShowWheelOptions(true);
   };
 
   const handleWheelSelection = (value: number | string) => {
+    // Stop toss_up sound when wheel selection is made
+    stopLoopingSounds();
+    
     if (onWheelSelect) {
       onWheelSelect(value);
     }
@@ -58,6 +80,9 @@ export const GameControls = ({ gameStatus, onSpin, onWheelSelect, onGuessLetter,
 
   const handleLetterGuess = () => {
     if (onGuessLetter && selectedLetter && canGuessLetter) {
+      // Stop choose_letters sound when letter is guessed
+      stopLoopingSounds();
+      
       onGuessLetter(selectedLetter);
       setSelectedLetter('');
     }
@@ -65,6 +90,9 @@ export const GameControls = ({ gameStatus, onSpin, onWheelSelect, onGuessLetter,
 
   const handleSolveAttempt = () => {
     if (onSolve && solutionGuess.trim()) {
+      // Stop any looping sounds when attempting to solve
+      stopLoopingSounds();
+      
       onSolve(solutionGuess.trim());
       setSolutionGuess('');
       setShowSolveInput(false);

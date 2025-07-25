@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { TeamDisplay } from './TeamDisplay';
 import { PuzzleDisplay } from './PuzzleDisplay';
 import { GameControls } from './GameControls';
+import { ImageLetterBoard } from './ImageLetterBoard';
 import type { GameStatus } from '../types/game';
+import { useSounds } from '../hooks/useSounds';
 
 interface GameBoardProps {
   gameStatus: GameStatus | null;
@@ -34,11 +36,38 @@ export const GameBoard = ({ gameStatus: initialGameStatus, isLoading, error }: G
   const [gameStatus, setGameStatus] = useState(initialGameStatus);
   const [newlyRevealedLetters, setNewlyRevealedLetters] = useState<string[]>([]);
 
+  const { playSound, playDing, stopLoopingSounds } = useSounds();
+  
+  // Track which round we've played the puzzle_reveal sound for
+  const lastPuzzleRevealRoundRef = useRef<number>(0);
+
+  // Play puzzle reveal sound when a new round starts (only once per round)
+  useEffect(() => {
+    if (gameStatus && 
+        gameStatus.game_state === 'IN_PROGRESS' && 
+        gameStatus.current_round > 0 && 
+        gameStatus.current_round !== lastPuzzleRevealRoundRef.current) {
+      playSound('puzzle_reveal');
+      lastPuzzleRevealRoundRef.current = gameStatus.current_round;
+    }
+  }, [gameStatus?.current_round, gameStatus?.game_state, playSound]);
+
+  // Reset puzzle reveal tracking when game status changes (new game)
+  useEffect(() => {
+    if (gameStatus?.game_id !== undefined) {
+      lastPuzzleRevealRoundRef.current = 0;
+    }
+  }, [gameStatus?.game_id]);
+
   const handleWheelSelect = (wheelResult: number | string) => {
     if (!gameStatus) return;
 
     // Handle BANKRUPT - reset current round money to 0
     if (wheelResult === 'BANKRUPT') {
+      // Stop other sounds and play bankrupt sound
+      stopLoopingSounds();
+      playSound('bankrupt', { stopOthers: true });
+      
       setGameStatus(prev => prev ? {
         ...prev,
         last_wheel_result: wheelResult,
@@ -77,6 +106,10 @@ export const GameBoard = ({ gameStatus: initialGameStatus, isLoading, error }: G
 
   const completeRound = () => {
     if (!gameStatus) return;
+
+    // Play puzzle solve sound
+    stopLoopingSounds();
+    playSound('puzzle_solve');
 
     // Transfer current round money to total money for all teams
     const updatedTeams = gameStatus.teams.map(team => ({
@@ -129,7 +162,7 @@ export const GameBoard = ({ gameStatus: initialGameStatus, isLoading, error }: G
       },
       {
         solution: "GOOD MORNING AMERICA",
-        category: "TV SHOW", 
+        category: "TV SHOW",
         display: "_ _ _ _   _ _ _ _ _ _ _   _ _ _ _ _ _ _"
       },
       {
@@ -168,6 +201,9 @@ export const GameBoard = ({ gameStatus: initialGameStatus, isLoading, error }: G
       },
       last_wheel_result: undefined // Clear previous wheel result
     } : null);
+
+    // The puzzle_reveal sound will be automatically played by the useEffect
+    // when it detects the round change, so we don't need to call it manually here
   };
 
   const isPuzzleComplete = (solution: string, guessedLetters: string[]) => {
@@ -196,6 +232,10 @@ export const GameBoard = ({ gameStatus: initialGameStatus, isLoading, error }: G
     if (isCorrect) {
       // Count how many times the letter appears in the solution
       const letterCount = puzzle.solution.toUpperCase().split('').filter(char => char === letter.toUpperCase()).length;
+      
+      // Play ding sound for each occurrence of the letter
+      stopLoopingSounds();
+      playDing(letterCount);
       
       // Calculate money earned (consonants only, vowels are purchased)
       let moneyChange = 0;
@@ -264,6 +304,10 @@ export const GameBoard = ({ gameStatus: initialGameStatus, isLoading, error }: G
         } : null);
       }
     } else {
+      // Letter not in puzzle - play buzzer sound
+      stopLoopingSounds();
+      playSound('buzzer');
+      
       // Letter not in puzzle - still deduct vowel cost if applicable, then end turn
       let moneyChange = 0;
       if (isVowel) {

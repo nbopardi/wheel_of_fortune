@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { Team } from '../types/game';
+import { useSounds } from '../hooks/useSounds';
 
 interface GameSetupProps {
   onStartGame: (teams: Team[], totalRounds: number) => void;
@@ -13,6 +14,22 @@ export const GameSetup = ({ onStartGame }: GameSetupProps) => {
     { name: 'Team Beta', members: 'Charlie, Diana' },
     { name: 'Team Gamma', members: 'Eve, Frank' }
   ]);
+  
+  const { playSound, stopAllSounds, soundsLoaded } = useSounds();
+
+  // Play theme song when component mounts and sounds are loaded
+  useEffect(() => {
+    if (soundsLoaded) {
+      playSound('theme_song');
+    }
+  }, [soundsLoaded, playSound]);
+
+  // Stop sounds when component unmounts
+  useEffect(() => {
+    return () => {
+      stopAllSounds();
+    };
+  }, [stopAllSounds]);
 
   const handleNumTeamsChange = (newNum: number) => {
     setNumTeams(newNum);
@@ -40,6 +57,9 @@ export const GameSetup = ({ onStartGame }: GameSetupProps) => {
   };
 
   const handleStartGame = () => {
+    // Stop theme song before transitioning to game
+    stopAllSounds();
+    
     // Convert setup data to Team objects
     const gameTeams: Team[] = teams.map((team, index) => ({
       team_id: `team-${index + 1}`,
