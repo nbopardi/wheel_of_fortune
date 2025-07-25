@@ -15,20 +15,44 @@ export const GameBoard = ({ gameStatus: initialGameStatus, isLoading, error }: G
   const [gameStatus, setGameStatus] = useState(initialGameStatus);
   const [newlyRevealedLetters, setNewlyRevealedLetters] = useState<string[]>([]);
 
-  // Mock wheel values for demonstration
-  const wheelValues = [500, 600, 700, 800, 900, 1000, 1500, 2000, 'BANKRUPT', 'LOSE A TURN'];
-
-  const handleSpin = () => {
+  const handleWheelSelect = (wheelResult: number | string) => {
     if (!gameStatus) return;
 
-    // Simulate wheel spin with random result
-    const randomIndex = Math.floor(Math.random() * wheelValues.length);
-    const spinResult = wheelValues[randomIndex];
+    // Handle BANKRUPT - reset current round money to 0
+    if (wheelResult === 'BANKRUPT') {
+      setGameStatus(prev => prev ? {
+        ...prev,
+        last_wheel_result: wheelResult,
+        teams: prev.teams.map(team => 
+          team.is_current_turn 
+            ? { ...team, current_round_money: 0 }
+            : team
+        ),
+        turn_state: 'TURN_ENDED'
+      } : null);
+    } else {
+      setGameStatus(prev => prev ? {
+        ...prev,
+        last_wheel_result: wheelResult,
+        turn_state: typeof wheelResult === 'number' ? 'WAITING_FOR_LETTER_GUESS' : 'TURN_ENDED'
+      } : null);
+    }
+  };
+
+  const handleNextTeam = () => {
+    if (!gameStatus) return;
+
+    const currentTeamIndex = gameStatus.teams.findIndex(team => team.is_current_turn);
+    const nextTeamIndex = (currentTeamIndex + 1) % gameStatus.teams.length;
 
     setGameStatus(prev => prev ? {
       ...prev,
-      last_wheel_result: spinResult,
-      turn_state: typeof spinResult === 'number' ? 'WAITING_FOR_LETTER_GUESS' : 'TURN_ENDED'
+      teams: prev.teams.map((team, index) => ({
+        ...team,
+        is_current_turn: index === nextTeamIndex
+      })),
+      turn_state: 'WAITING_FOR_SPIN',
+      last_wheel_result: undefined // Clear previous wheel result for new turn
     } : null);
   };
 
@@ -37,8 +61,26 @@ export const GameBoard = ({ gameStatus: initialGameStatus, isLoading, error }: G
 
     const puzzle = gameStatus.current_puzzle;
     const isCorrect = puzzle.solution.toUpperCase().includes(letter.toUpperCase());
+    const currentTeam = gameStatus.teams.find(team => team.is_current_turn);
+    
+    if (!currentTeam) return;
+
+    // Check if it's a vowel (costs $250)
+    const isVowel = ['A', 'E', 'I', 'O', 'U'].includes(letter.toUpperCase());
+    const vowelCost = 250;
 
     if (isCorrect) {
+      // Count how many times the letter appears in the solution
+      const letterCount = puzzle.solution.toUpperCase().split('').filter(char => char === letter.toUpperCase()).length;
+      
+      // Calculate money earned (consonants only, vowels are purchased)
+      let moneyChange = 0;
+      if (isVowel) {
+        moneyChange = -vowelCost; // Deduct cost of vowel
+      } else if (typeof gameStatus.last_wheel_result === 'number') {
+        moneyChange = gameStatus.last_wheel_result * letterCount; // Earn money for consonants
+      }
+
       // Add letter to guessed letters and show as newly revealed
       setNewlyRevealedLetters([letter.toUpperCase()]);
       
@@ -54,10 +96,23 @@ export const GameBoard = ({ gameStatus: initialGameStatus, isLoading, error }: G
           available_consonants: prev.current_puzzle.available_consonants.filter(l => l !== letter.toUpperCase()),
           available_vowels: prev.current_puzzle.available_vowels.filter(l => l !== letter.toUpperCase())
         },
+        teams: prev.teams.map(team => 
+          team.is_current_turn 
+            ? { 
+                ...team, 
+                current_round_money: Math.max(0, team.current_round_money + moneyChange) // Ensure money doesn't go negative
+              }
+            : team
+        ),
         turn_state: 'WAITING_FOR_SPIN' // Player continues
       } : null);
     } else {
-      // Letter not in puzzle - end turn
+      // Letter not in puzzle - still deduct vowel cost if applicable, then end turn
+      let moneyChange = 0;
+      if (isVowel) {
+        moneyChange = -vowelCost; // Still pay for vowel even if incorrect
+      }
+
       setGameStatus(prev => prev ? {
         ...prev,
         current_puzzle: {
@@ -65,6 +120,14 @@ export const GameBoard = ({ gameStatus: initialGameStatus, isLoading, error }: G
           available_consonants: prev.current_puzzle.available_consonants.filter(l => l !== letter.toUpperCase()),
           available_vowels: prev.current_puzzle.available_vowels.filter(l => l !== letter.toUpperCase())
         },
+        teams: prev.teams.map(team => 
+          team.is_current_turn 
+            ? { 
+                ...team, 
+                current_round_money: Math.max(0, team.current_round_money + moneyChange)
+              }
+            : team
+        ),
         turn_state: 'TURN_ENDED'
       } : null);
     }
@@ -173,7 +236,8 @@ export const GameBoard = ({ gameStatus: initialGameStatus, isLoading, error }: G
         {gameStatus.game_state === 'IN_PROGRESS' && (
           <GameControls
             gameStatus={gameStatus}
-            onSpin={handleSpin}
+            onWheelSelect={handleWheelSelect}
+            onNextTeam={handleNextTeam}
             onGuessLetter={handleGuessLetter}
             onSolve={handleSolve}
           />
@@ -190,7 +254,7 @@ export const GameBoard = ({ gameStatus: initialGameStatus, isLoading, error }: G
             </div>
             {gameStatus.last_wheel_result && (
               <div className="text-sm text-gray-600">
-                <span className="font-medium">Last Spin:</span> {gameStatus.last_wheel_result}
+                <span className="font-medium">Last Spin:</span> {typeof gameStatus.last_wheel_result === 'number' ? `$${gameStatus.last_wheel_result}` : gameStatus.last_wheel_result}
               </div>
             )}
           </div>
@@ -198,7 +262,7 @@ export const GameBoard = ({ gameStatus: initialGameStatus, isLoading, error }: G
           {/* Demo Notice */}
           <div className="mt-3 pt-3 border-t border-gray-200">
             <p className="text-xs text-gray-500 text-center">
-              ⚠️ Demo Mode: This is a frontend-only demonstration. Game actions are simulated locally.
+              ⚠️ Demo Mode: Spin your physical wheel, then select the result in the game to continue.
             </p>
           </div>
         </div>

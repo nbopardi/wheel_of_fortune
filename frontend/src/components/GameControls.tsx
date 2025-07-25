@@ -4,14 +4,20 @@ import type { GameStatus } from '../types/game';
 interface GameControlsProps {
   gameStatus: GameStatus;
   onSpin?: () => void;
+  onWheelSelect?: (value: number | string) => void;
   onGuessLetter?: (letter: string) => void;
   onSolve?: (solution: string) => void;
+  onNextTeam?: () => void;
 }
 
-export const GameControls = ({ gameStatus, onSpin, onGuessLetter, onSolve }: GameControlsProps) => {
+export const GameControls = ({ gameStatus, onSpin, onWheelSelect, onGuessLetter, onSolve, onNextTeam }: GameControlsProps) => {
   const [selectedLetter, setSelectedLetter] = useState('');
   const [solutionGuess, setSolutionGuess] = useState('');
   const [showSolveInput, setShowSolveInput] = useState(false);
+  const [showWheelOptions, setShowWheelOptions] = useState(false);
+
+  // Wheel values that can be selected
+  const wheelValues = [500, 600, 700, 800, 900, 1000, 1500, 2000, 'BANKRUPT', 'LOSE A TURN'];
 
   const { current_puzzle, turn_state, teams } = gameStatus;
   const currentTeam = teams.find(team => team.is_current_turn);
@@ -23,11 +29,17 @@ export const GameControls = ({ gameStatus, onSpin, onGuessLetter, onSolve }: Gam
   const canSpin = turn_state === 'WAITING_FOR_SPIN';
   const canGuessLetter = turn_state === 'WAITING_FOR_LETTER_GUESS';
   const canSolve = turn_state === 'WAITING_FOR_SOLVE_ATTEMPT' || turn_state === 'WAITING_FOR_LETTER_GUESS';
+  const turnEnded = turn_state === 'TURN_ENDED';
 
-  const handleSpin = () => {
-    if (onSpin && canSpin) {
-      onSpin();
+  const handleShowWheelOptions = () => {
+    setShowWheelOptions(true);
+  };
+
+  const handleWheelSelection = (value: number | string) => {
+    if (onWheelSelect) {
+      onWheelSelect(value);
     }
+    setShowWheelOptions(false);
   };
 
   const handleLetterGuess = () => {
@@ -45,8 +57,16 @@ export const GameControls = ({ gameStatus, onSpin, onGuessLetter, onSolve }: Gam
     }
   };
 
+  const handleNextTeam = () => {
+    if (onNextTeam) {
+      onNextTeam();
+    }
+  };
+
   const availableConsonants = current_puzzle.available_consonants || [];
   const availableVowels = current_puzzle.available_vowels || [];
+  const vowelCost = 250;
+  const canAffordVowels = currentTeam.current_round_money >= vowelCost;
 
   return (
     <div className="bg-white rounded-lg p-6 shadow-lg">
@@ -57,24 +77,77 @@ export const GameControls = ({ gameStatus, onSpin, onGuessLetter, onSolve }: Gam
         <p className="text-gray-600 capitalize">
           {turn_state.replace('_', ' ').toLowerCase()}
         </p>
+        <p className="text-sm text-gray-600 mt-1">
+          Round Money: ${currentTeam.current_round_money} | Total: ${currentTeam.total_money}
+        </p>
         {gameStatus.last_wheel_result && (
           <div className="mt-2 px-4 py-2 bg-wof-gold bg-opacity-20 rounded-lg">
             <span className="font-bold text-wof-blue">
-              Last Spin: ${gameStatus.last_wheel_result}
+              Last Spin: {typeof gameStatus.last_wheel_result === 'number' ? `$${gameStatus.last_wheel_result}` : gameStatus.last_wheel_result}
             </span>
           </div>
         )}
       </div>
 
-      {/* Spin Wheel Button */}
+      {/* Turn Ended - Next Team Button */}
+      {turnEnded && (
+        <div className="text-center mb-6">
+          <div className="mb-4 p-4 bg-gray-100 rounded-lg">
+            <p className="text-gray-700 mb-2">Turn completed!</p>
+            <p className="text-sm text-gray-600">
+              {gameStatus.last_wheel_result === 'BANKRUPT' && 'Bankrupt! All round money lost.'}
+              {gameStatus.last_wheel_result === 'LOSE A TURN' && 'Lose a turn! Moving to next team.'}
+              {typeof gameStatus.last_wheel_result === 'number' && 'Letter guess was incorrect.'}
+              {!gameStatus.last_wheel_result && 'Solve attempt was incorrect.'}
+            </p>
+          </div>
+          <button
+            onClick={handleNextTeam}
+            className="btn-primary text-lg px-8 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
+          >
+            Next Team →
+          </button>
+        </div>
+      )}
+
+      {/* Spin Wheel Button / Wheel Selection */}
       {canSpin && (
         <div className="text-center mb-6">
-          <button
-            onClick={handleSpin}
-            className="btn-primary text-lg px-8 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
-          >
-            🎡 Spin the Wheel
-          </button>
+          {!showWheelOptions ? (
+            <button
+              onClick={handleShowWheelOptions}
+              className="btn-primary text-lg px-8 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+            >
+              🎡 Spin the Wheel
+            </button>
+          ) : (
+            <div className="space-y-4">
+              <h4 className="font-semibold text-gray-800">Select your wheel result:</h4>
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                {wheelValues.map((value, index) => (
+                  <button
+                    key={index}
+                    onClick={() => handleWheelSelection(value)}
+                    className={`px-4 py-3 rounded-lg font-bold transition-all transform hover:scale-105 ${
+                      typeof value === 'number'
+                        ? 'bg-green-100 text-green-800 border-2 border-green-300 hover:bg-green-200'
+                        : value === 'BANKRUPT'
+                        ? 'bg-red-100 text-red-800 border-2 border-red-300 hover:bg-red-200'
+                        : 'bg-yellow-100 text-yellow-800 border-2 border-yellow-300 hover:bg-yellow-200'
+                    }`}
+                  >
+                    {typeof value === 'number' ? `$${value}` : value}
+                  </button>
+                ))}
+              </div>
+              <button
+                onClick={() => setShowWheelOptions(false)}
+                className="text-sm text-gray-600 hover:text-gray-800 underline"
+              >
+                Cancel
+              </button>
+            </div>
+          )}
         </div>
       )}
 
@@ -105,14 +178,22 @@ export const GameControls = ({ gameStatus, onSpin, onGuessLetter, onSolve }: Gam
 
           {/* Vowels */}
           <div className="mb-4">
-            <p className="text-sm text-gray-600 mb-2">Vowels ($250 each):</p>
+            <p className="text-sm text-gray-600 mb-2">
+              Vowels (${vowelCost} each)
+              {!canAffordVowels && (
+                <span className="text-red-600 ml-2">- Insufficient funds</span>
+              )}
+            </p>
             <div className="flex flex-wrap gap-2">
               {availableVowels.map((letter) => (
                 <button
                   key={letter}
-                  onClick={() => setSelectedLetter(letter)}
+                  onClick={() => canAffordVowels && setSelectedLetter(letter)}
+                  disabled={!canAffordVowels}
                   className={`w-10 h-10 border-2 rounded font-bold transition-all ${
-                    selectedLetter === letter
+                    !canAffordVowels
+                      ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                      : selectedLetter === letter
                       ? 'bg-wof-gold text-white border-wof-gold'
                       : 'bg-white text-gray-800 border-gray-300 hover:border-wof-gold'
                   }`}
@@ -121,6 +202,11 @@ export const GameControls = ({ gameStatus, onSpin, onGuessLetter, onSolve }: Gam
                 </button>
               ))}
             </div>
+            {!canAffordVowels && (
+              <p className="text-xs text-gray-500 mt-1">
+                You need at least ${vowelCost} to buy a vowel. Spin the wheel to earn money!
+              </p>
+            )}
           </div>
 
           {/* Guess Letter Button */}
@@ -130,7 +216,10 @@ export const GameControls = ({ gameStatus, onSpin, onGuessLetter, onSolve }: Gam
                 onClick={handleLetterGuess}
                 className="btn-secondary px-6 py-2 rounded-lg"
               >
-                Guess "{selectedLetter}"
+                {['A', 'E', 'I', 'O', 'U'].includes(selectedLetter) 
+                  ? `Buy "${selectedLetter}" for $${vowelCost}` 
+                  : `Guess "${selectedLetter}"`
+                }
               </button>
             </div>
           )}
@@ -184,10 +273,11 @@ export const GameControls = ({ gameStatus, onSpin, onGuessLetter, onSolve }: Gam
 
       {/* Game State Help */}
       <div className="mt-4 text-xs text-gray-500 text-center">
-        {turn_state === 'WAITING_FOR_SPIN' && 'Click "Spin the Wheel" to begin your turn'}
+        {turn_state === 'WAITING_FOR_SPIN' && !showWheelOptions && 'Click "Spin the Wheel" to see your options after spinning your physical wheel'}
+        {turn_state === 'WAITING_FOR_SPIN' && showWheelOptions && 'Select the result from your physical wheel spin'}
         {turn_state === 'WAITING_FOR_LETTER_GUESS' && 'Choose a letter to guess'}
         {turn_state === 'WAITING_FOR_SOLVE_ATTEMPT' && 'Try to solve the puzzle or guess another letter'}
-        {turn_state === 'TURN_ENDED' && 'Turn completed, waiting for next player'}
+        {turn_state === 'TURN_ENDED' && 'Click "Next Team" to continue with the next player'}
       </div>
     </div>
   );
