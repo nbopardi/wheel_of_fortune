@@ -49,7 +49,9 @@ class Team:
     
     def win_round(self) -> None:
         """Win the round - add current round money to total and reset round money."""
-        self.total_money += self.current_round_money
+        # Ensure the team gets at least $1000 for winning the round
+        round_winnings = max(self.current_round_money, 1000)
+        self.total_money += round_winnings
         self.current_round_money = 0
     
     def can_buy_vowel(self, vowel_cost: int = 250) -> bool:

@@ -115,12 +115,24 @@ export const GameBoard = ({ gameStatus: initialGameStatus, isLoading, error }: G
       }
     });
 
+    // Find the solving team (current turn team)
+    const solvingTeam = gameStatus.teams.find(team => team.is_current_turn);
+    
     // Transfer current round money to total money for all teams
-    const updatedTeams = gameStatus.teams.map(team => ({
-      ...team,
-      total_money: team.total_money + team.current_round_money,
-      current_round_money: 0 // Reset round money
-    }));
+    const updatedTeams = gameStatus.teams.map(team => {
+      let roundMoney = team.current_round_money;
+      
+      // If this is the solving team and they earned less than $1000, bump them up to $1000
+      if (team.is_current_turn && roundMoney < 1000) {
+        roundMoney = 1000;
+      }
+      
+      return {
+        ...team,
+        total_money: team.total_money + roundMoney,
+        current_round_money: 0 // Reset round money
+      };
+    });
 
     // Find the maximum total money
     const maxMoney = Math.max(...updatedTeams.map(team => team.total_money));
@@ -129,8 +141,8 @@ export const GameBoard = ({ gameStatus: initialGameStatus, isLoading, error }: G
     const winners = updatedTeams.filter(team => team.total_money === maxMoney);
     
     // For display purposes, use the first winner (or solving team if they're tied for first)
-    const solvingTeam = updatedTeams.find(team => team.is_current_turn);
-    const primaryWinner = winners.includes(solvingTeam!) ? solvingTeam! : winners[0];
+    const updatedSolvingTeam = updatedTeams.find(team => team.team_id === solvingTeam?.team_id);
+    const primaryWinner = winners.includes(updatedSolvingTeam!) ? updatedSolvingTeam! : winners[0];
 
     // Reveal all letters
     const allLetters = gameStatus.current_puzzle.solution.split('').filter(char => char.match(/[A-Z]/i));
