@@ -84,15 +84,15 @@ export const GameSetup = ({ onStartGame }: GameSetupProps) => {
 
   return (
     <div className="min-h-screen flex items-center justify-center" style={{
-      backgroundImage: 'url(/assets/backgrounds/gameplay_background.png)',
+      backgroundImage: 'url(/assets/backgrounds/casino.png)',
       backgroundSize: 'cover',
       backgroundPosition: 'center',
       backgroundRepeat: 'no-repeat',
       backgroundAttachment: 'fixed'
     }}>
       <div className="rounded-lg shadow-lg p-8 max-w-2xl w-full mx-4" style={{
-        backgroundColor: 'rgba(255, 255, 255, 0.8)',
-        backdropFilter: 'blur(15px)',
+        backgroundColor: 'rgba(255, 255, 255, 0.6)',
+        backdropFilter: 'blur(5px)',
         border: '1px solid rgba(255, 255, 255, 0.2)'
       }}>
         {/* Header */}
@@ -193,11 +193,11 @@ export const GameSetup = ({ onStartGame }: GameSetupProps) => {
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
           <h4 className="font-medium text-blue-900 mb-2">📝 Setup Instructions</h4>
           <ul className="text-sm text-blue-700 space-y-1">
-            <li>• Choose between 2-6 teams for your game</li>
-            <li>• Select 1-5 rounds (3 rounds is standard)</li>
-            <li>• Give each team a unique name</li>
-            <li>• Add team members (optional but recommended)</li>
-            <li>• The first team will start the game</li>
+            <li>Choose between 2-6 teams for your game</li>
+            <li>Select 1-5 rounds (3 rounds is standard)</li>
+            <li>Give each team a unique name</li>
+            <li>Add team members (optional but recommended)</li>
+            <li>The first team will start the game</li>
           </ul>
         </div>
 
