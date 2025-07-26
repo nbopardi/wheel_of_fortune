@@ -36,6 +36,9 @@ export const GameBoard = ({ gameStatus: initialGameStatus, isLoading, error }: G
   // Local state for demo functionality
   const [gameStatus, setGameStatus] = useState(initialGameStatus);
   const [newlyRevealedLetters, setNewlyRevealedLetters] = useState<string[]>([]);
+  
+  // Ref for scrolling to puzzle area
+  const puzzleAreaRef = useRef<HTMLDivElement>(null);
 
   const { playSound, playDing, stopLoopingSounds, stopAllSounds } = useSounds();
   
@@ -261,6 +264,11 @@ export const GameBoard = ({ gameStatus: initialGameStatus, isLoading, error }: G
       // Add letter to guessed letters and show as newly revealed
       setNewlyRevealedLetters([letter.toUpperCase()]);
       
+      // Scroll to puzzle area to show the revealed letter
+      setTimeout(() => {
+        scrollToPuzzleArea();
+      }, 100);
+      
       setTimeout(() => {
         setNewlyRevealedLetters([]);
       }, 2000);
@@ -353,6 +361,12 @@ export const GameBoard = ({ gameStatus: initialGameStatus, isLoading, error }: G
     if (isCorrect) {
       // Stop any looping sounds immediately when puzzle is solved
       stopLoopingSounds();
+      
+      // Scroll to puzzle area to show the completed puzzle
+      setTimeout(() => {
+        scrollToPuzzleArea();
+      }, 100);
+      
       completeRound();
     } else {
       // Wrong solution - end turn
@@ -360,6 +374,17 @@ export const GameBoard = ({ gameStatus: initialGameStatus, isLoading, error }: G
         ...prev,
         turn_state: 'TURN_ENDED'
       } : null);
+    }
+  };
+
+  // Function to scroll to puzzle area smoothly
+  const scrollToPuzzleArea = () => {
+    if (puzzleAreaRef.current) {
+      puzzleAreaRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+        inline: 'nearest'
+      });
     }
   };
 
@@ -467,7 +492,9 @@ export const GameBoard = ({ gameStatus: initialGameStatus, isLoading, error }: G
 
         {/* Main Puzzle Area */}
         {gameStatus.current_puzzle && (
-          <div className="rounded-lg shadow-lg mb-8" style={{
+          <div 
+            ref={puzzleAreaRef}
+            className="rounded-lg shadow-lg mb-8" style={{
             backgroundColor: 'rgba(255, 255, 255, 0.75)',
             backdropFilter: 'blur(10px)',
             border: '1px solid rgba(255, 255, 255, 0.2)'
