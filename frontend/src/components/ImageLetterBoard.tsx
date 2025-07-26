@@ -8,7 +8,7 @@ const ROW_CAPACITIES = [12, 12, 12, 12]; // All rows have 12 slots
 // TODO: Replace with actual coordinates from Firefox dev tools
 const LETTER_SLOT_COORDINATES: { [key: string]: { x: string; y: string } } = {
   // Row 1 (12 slots)
-  '0-0': { x: '18.1%', y: '31.8%' },  // Slot 1
+  '0-0': { x: '18.2%', y: '31.8%' },  // Slot 1
   '0-1': { x: '23.9%', y: '31.8%' },  // Slot 2
   '0-2': { x: '29.8%', y: '31.8%' },  // Slot 3
   '0-3': { x: '35.7%', y: '31.9%' },  // Slot 4
@@ -22,7 +22,7 @@ const LETTER_SLOT_COORDINATES: { [key: string]: { x: string; y: string } } = {
   '0-11': { x: '82.2%', y: '31.8%' }, // Slot 12 
   
   // Row 2 (12 slots)
-  '1-0': { x: '18.2%', y: '47.5%' },  // Slot 1
+  '1-0': { x: '18.3%', y: '47.5%' },  // Slot 1
   '1-1': { x: '24.0%', y: '47.5%' },  // Slot 2
   '1-2': { x: '29.8%', y: '47.5%' },  // Slot 3
   '1-3': { x: '35.7%', y: '47.5%' },  // Slot 4
