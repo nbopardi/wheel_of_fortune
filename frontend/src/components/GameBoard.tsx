@@ -5,6 +5,7 @@ import { GameControls } from './GameControls';
 import { ImageLetterBoard } from './ImageLetterBoard';
 import type { GameStatus } from '../types/game';
 import { useSounds } from '../hooks/useSounds';
+import { getPuzzleByIndex, createPuzzle } from '../utils/puzzles';
 
 interface GameBoardProps {
   gameStatus: GameStatus | null;
@@ -188,38 +189,11 @@ export const GameBoard = ({ gameStatus: initialGameStatus, isLoading, error }: G
     // Stop any playing sounds (like bonus_wheel_music) before starting new round
     stopAllSounds();
 
-    // Sample puzzles for different rounds
-    const puzzles = [
-      {
-        solution: "THE QUICK BROWN FOX",
-        category: "PHRASE",
-        display: "_ _ _   _ _ _ _ _   _ _ _ _ _   _ _ _"
-      },
-      {
-        solution: "WHEEL OF FORTUNE",
-        category: "TV SHOW",
-        display: "_ _ _ _ _   _ _   _ _ _ _ _ _ _"
-      },
-      {
-        solution: "GOOD MORNING AMERICA",
-        category: "TV SHOW",
-        display: "_ _ _ _   _ _ _ _ _ _ _   _ _ _ _ _ _ _"
-      },
-      {
-        solution: "PIZZA AND FRENCH FRIES",
-        category: "FOOD & DRINK",
-        display: "_ _ _ _ _   _ _ _   _ _ _ _ _ _   _ _ _ _ _"
-      },
-      {
-        solution: "AROUND THE WORLD",
-        category: "PHRASE",
-        display: "_ _ _ _ _ _   _ _ _   _ _ _ _ _"
-      }
-    ];
-
     const newRoundNumber = gameStatus.current_round + 1;
-    const puzzleIndex = (newRoundNumber - 1) % puzzles.length; // Cycle through puzzles
-    const newPuzzle = puzzles[puzzleIndex];
+    
+    // Get puzzle for the new round using the utility function
+    const puzzleData = getPuzzleByIndex(newRoundNumber - 1);
+    const newPuzzle = createPuzzle(puzzleData);
 
     setGameStatus(prev => prev ? {
       ...prev,
@@ -231,14 +205,7 @@ export const GameBoard = ({ gameStatus: initialGameStatus, isLoading, error }: G
         current_round_money: 0, // Reset round money but keep total
         is_current_turn: index === 0 // First team starts the new round
       })),
-      current_puzzle: {
-        solution: newPuzzle.solution,
-        category: newPuzzle.category,
-        guessed_letters: [],
-        display: newPuzzle.display,
-        available_consonants: ["B", "C", "D", "F", "G", "J", "K", "L", "M", "N", "P", "Q", "R", "S", "T", "V", "W", "X", "Y", "Z"],
-        available_vowels: ["A", "E", "I", "O", "U"]
-      },
+      current_puzzle: newPuzzle,
       last_wheel_result: undefined // Clear previous wheel result
     } : null);
 

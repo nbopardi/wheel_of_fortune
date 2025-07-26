@@ -2,12 +2,17 @@ import React, { useState } from 'react';
 import { GameBoard } from './components/GameBoard';
 import { GameSetup } from './components/GameSetup';
 import type { GameStatus, Team } from './types/game';
+import { getInitialPuzzle, createPuzzle } from './utils/puzzles';
 
 function App() {
   const [gameStarted, setGameStarted] = useState(false);
   const [gameStatus, setGameStatus] = useState<GameStatus | null>(null);
 
   const handleStartGame = (teams: Team[], totalRounds: number) => {
+    // Get the initial puzzle from the puzzles data
+    const initialPuzzleData = getInitialPuzzle();
+    const initialPuzzle = createPuzzle(initialPuzzleData);
+
     // Create a game status with the configured teams and rounds
     const newGameStatus: GameStatus = {
       game_id: `game-${Date.now()}`,
@@ -16,14 +21,7 @@ function App() {
       current_round: 1,
       total_rounds: totalRounds,
       teams: teams,
-      current_puzzle: {
-        solution: "THE QUICK BROWN FOX",
-        category: "PHRASE",
-        guessed_letters: [],
-        display: "_ _ _   _ _ _ _ _   _ _ _ _ _   _ _ _",
-        available_consonants: ["B", "C", "D", "F", "G", "J", "K", "L", "M", "N", "P", "Q", "R", "S", "T", "V", "W", "X", "Y", "Z"],
-        available_vowels: ["A", "E", "I", "O", "U"]
-      }
+      current_puzzle: initialPuzzle
     };
 
     setGameStatus(newGameStatus);
