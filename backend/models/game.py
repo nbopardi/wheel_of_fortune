@@ -123,12 +123,25 @@ class Game:
             result_info["turn_continues"] = False
             result_info["message"] = f"{current_team.name} lost their turn!"
             
-        elif wheel_result == WheelResult.FREE_SPIN:
-            # Give free spin and continue turn
-            current_team.give_free_spin()
-            self.turn_state = TurnState.WAITING_FOR_SPIN
-            result_info["action_required"] = "spin_again"
-            result_info["message"] = f"{current_team.name} earned a FREE SPIN! Spin again."
+        elif wheel_result == WheelResult.DANCE:
+            # Team does dance move and gets $1001
+            current_team.add_money(1001)
+            self.turn_state = TurnState.WAITING_FOR_LETTER_GUESS
+            result_info["action_required"] = "guess_consonant"
+            result_info["message"] = f"{current_team.name} spun DANCE! Do a dance move and earn $1001! Guess a consonant."
+            
+        elif wheel_result == WheelResult.STORY:
+            # Team tells story and gets $1001
+            current_team.add_money(1001)
+            self.turn_state = TurnState.WAITING_FOR_LETTER_GUESS
+            result_info["action_required"] = "guess_consonant"
+            result_info["message"] = f"{current_team.name} spun STORY! Tell a story and earn $1001! Guess a consonant."
+            
+        elif wheel_result == WheelResult.WIN_A_CAR:
+            # Team gets toy car but no points, turn ends
+            self._end_turn()
+            result_info["turn_continues"] = False
+            result_info["message"] = f"{current_team.name} spun WIN A CAR! Get a toy car but no points. Turn ends."
             
         return result_info
     

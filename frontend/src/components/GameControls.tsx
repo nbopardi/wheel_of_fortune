@@ -33,7 +33,7 @@ export const GameControls = ({ gameStatus, onSpin, onWheelSelect, onGuessLetter,
   const { playSound, stopLoopingSounds } = useSounds();
 
   // Wheel values that can be selected
-  const wheelValues = [500, 600, 700, 800, 900, 1000, 1500, 2000, 'BANKRUPT', 'LOSE A TURN'];
+  const wheelValues = [100, 200, 300, 500, 750, 1000, 'BANKRUPT', 'LOSE A TURN', 'DANCE', 'STORY', 'WIN A CAR'];
 
   const { current_puzzle, turn_state, teams, game_state } = gameStatus;
   const currentTeam = teams.find(team => team.is_current_turn);
@@ -292,10 +292,27 @@ export const GameControls = ({ gameStatus, onSpin, onWheelSelect, onGuessLetter,
                         ? 'bg-green-100 text-green-800 border-2 border-green-300 hover:bg-green-200'
                         : value === 'BANKRUPT'
                         ? 'bg-red-100 text-red-800 border-2 border-red-300 hover:bg-red-200'
+                        : value === 'LOSE A TURN'
+                        ? 'bg-orange-100 text-orange-800 border-2 border-orange-300 hover:bg-orange-200'
+                        : value === 'DANCE'
+                        ? 'bg-purple-100 text-purple-800 border-2 border-purple-300 hover:bg-purple-200'
+                        : value === 'STORY'
+                        ? 'bg-blue-100 text-blue-800 border-2 border-blue-300 hover:bg-blue-200'
+                        : value === 'WIN A CAR'
+                        ? 'bg-pink-100 text-pink-800 border-2 border-pink-300 hover:bg-pink-200'
                         : 'bg-yellow-100 text-yellow-800 border-2 border-yellow-300 hover:bg-yellow-200'
                     }`}
                   >
-                    {typeof value === 'number' ? `$${value}` : value}
+                    {typeof value === 'number' 
+                      ? `$${value}` 
+                      : value === 'DANCE'
+                      ? '💃 DANCE ($1001)'
+                      : value === 'STORY'
+                      ? '📖 STORY ($1001)'
+                      : value === 'WIN A CAR'
+                      ? '🚗 WIN A CAR'
+                      : value
+                    }
                   </button>
                 ))}
               </div>

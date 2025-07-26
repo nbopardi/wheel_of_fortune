@@ -78,7 +78,27 @@ export const GameBoard = ({ gameStatus: initialGameStatus, isLoading, error }: G
         ),
         turn_state: 'TURN_ENDED'
       } : null);
+    } else if (wheelResult === 'DANCE' || wheelResult === 'STORY') {
+      // Handle DANCE/STORY - add $1001 and allow letter guess
+      setGameStatus(prev => prev ? {
+        ...prev,
+        last_wheel_result: wheelResult,
+        teams: prev.teams.map(team => 
+          team.is_current_turn 
+            ? { ...team, current_round_money: team.current_round_money + 1001 }
+            : team
+        ),
+        turn_state: 'WAITING_FOR_LETTER_GUESS'
+      } : null);
+    } else if (wheelResult === 'WIN A CAR' || wheelResult === 'LOSE A TURN') {
+      // Handle WIN A CAR/LOSE A TURN - end turn without adding money
+      setGameStatus(prev => prev ? {
+        ...prev,
+        last_wheel_result: wheelResult,
+        turn_state: 'TURN_ENDED'
+      } : null);
     } else {
+      // Handle money values
       setGameStatus(prev => prev ? {
         ...prev,
         last_wheel_result: wheelResult,
