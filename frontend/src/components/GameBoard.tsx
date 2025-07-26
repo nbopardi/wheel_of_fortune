@@ -36,7 +36,7 @@ export const GameBoard = ({ gameStatus: initialGameStatus, isLoading, error }: G
   const [gameStatus, setGameStatus] = useState(initialGameStatus);
   const [newlyRevealedLetters, setNewlyRevealedLetters] = useState<string[]>([]);
 
-  const { playSound, playDing, stopLoopingSounds } = useSounds();
+  const { playSound, playDing, stopLoopingSounds, stopAllSounds } = useSounds();
   
   // Track which round we've played the puzzle_reveal sound for
   const lastPuzzleRevealRoundRef = useRef<number>(0);
@@ -107,9 +107,13 @@ export const GameBoard = ({ gameStatus: initialGameStatus, isLoading, error }: G
   const completeRound = () => {
     if (!gameStatus) return;
 
-    // Play puzzle solve sound
+    // Play puzzle solve sound first, then bonus wheel music after it finishes
     stopLoopingSounds();
-    playSound('puzzle_solve');
+    playSound('puzzle_solve', {
+      onEnded: () => {
+        playSound('bonus_wheel_music');
+      }
+    });
 
     // Transfer current round money to total money for all teams
     const updatedTeams = gameStatus.teams.map(team => ({
@@ -141,12 +145,16 @@ export const GameBoard = ({ gameStatus: initialGameStatus, isLoading, error }: G
         ...team,
         is_current_turn: team.team_id === primaryWinner.team_id // Mark primary winner as current
       })),
-      game_state: 'ROUND_COMPLETED' as const
+      game_state: 'ROUND_COMPLETED' as const,
+      turn_state: 'TURN_ENDED' as const // Explicitly set turn_state to prevent speedup sound
     } : null);
   };
 
   const handleNextRound = () => {
     if (!gameStatus) return;
+
+    // Stop any playing sounds (like bonus_wheel_music) before starting new round
+    stopAllSounds();
 
     // Sample puzzles for different rounds
     const puzzles = [
@@ -259,6 +267,9 @@ export const GameBoard = ({ gameStatus: initialGameStatus, isLoading, error }: G
       }, 2000);
 
       if (puzzleComplete) {
+        // Stop any looping sounds immediately when puzzle is completed
+        stopLoopingSounds();
+        
         // Update the game state with the final letter, then complete the round
         setGameStatus(prev => prev ? {
           ...prev,
@@ -275,7 +286,8 @@ export const GameBoard = ({ gameStatus: initialGameStatus, isLoading, error }: G
                   current_round_money: Math.max(0, team.current_round_money + moneyChange)
                 }
               : team
-          )
+          ),
+          turn_state: 'TURN_ENDED' // Prevent speedup sound during puzzle completion delay
         } : null);
 
         // Complete the round after a short delay to show the final letter
@@ -340,6 +352,8 @@ export const GameBoard = ({ gameStatus: initialGameStatus, isLoading, error }: G
     const isCorrect = solution.toUpperCase() === gameStatus.current_puzzle.solution.toUpperCase();
 
     if (isCorrect) {
+      // Stop any looping sounds immediately when puzzle is solved
+      stopLoopingSounds();
       completeRound();
     } else {
       // Wrong solution - end turn

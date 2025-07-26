@@ -40,17 +40,17 @@ export const GameControls = ({ gameStatus, onSpin, onWheelSelect, onGuessLetter,
 
   // Play appropriate background sounds based on turn state and UI state
   useEffect(() => {
-    if (turn_state === 'WAITING_FOR_SPIN' && !showWheelOptions) {
-      // Play toss_up sound when waiting for wheel spin (but not when showing wheel options)
-      playSound('toss_up');
+    if (turn_state === 'WAITING_FOR_SPIN' && game_state !== 'ROUND_COMPLETED') {
+      // Play speedup sound when waiting for wheel spin (including when showing wheel options)
+      playSound('speedup', { stopOthers: true });
     } else if (turn_state === 'WAITING_FOR_LETTER_GUESS') {
       // Play choose_letters sound when waiting for letter selection
-      playSound('choose_letters');
+      playSound('choose_letters', { stopOthers: true });
     } else {
-      // Stop looping sounds for other states or when showing wheel options
+      // Stop looping sounds for other states
       stopLoopingSounds();
     }
-  }, [turn_state, showWheelOptions, playSound, stopLoopingSounds]);
+  }, [turn_state, showWheelOptions, game_state, playSound, stopLoopingSounds]);
 
   if (!current_puzzle || !currentTeam) {
     return null;
@@ -63,15 +63,10 @@ export const GameControls = ({ gameStatus, onSpin, onWheelSelect, onGuessLetter,
   const roundCompleted = game_state === 'ROUND_COMPLETED';
 
   const handleShowWheelOptions = () => {
-    // Stop toss_up sound immediately when showing wheel options
-    stopLoopingSounds();
     setShowWheelOptions(true);
   };
 
   const handleWheelSelection = (value: number | string) => {
-    // Stop toss_up sound when wheel selection is made
-    stopLoopingSounds();
-    
     if (onWheelSelect) {
       onWheelSelect(value);
     }

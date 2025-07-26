@@ -2,13 +2,14 @@ import { useEffect, useRef, useState } from 'react';
 
 interface SoundMap {
   theme_song: HTMLAudioElement;
-  toss_up: HTMLAudioElement;
+  speedup: HTMLAudioElement;
   bankrupt: HTMLAudioElement;
   buzzer: HTMLAudioElement;
   choose_letters: HTMLAudioElement;
   ding: HTMLAudioElement;
   puzzle_reveal: HTMLAudioElement;
   puzzle_solve: HTMLAudioElement;
+  bonus_wheel_music: HTMLAudioElement;
 }
 
 export const useSounds = () => {
@@ -20,18 +21,19 @@ export const useSounds = () => {
     // Initialize all sound objects
     const sounds: SoundMap = {
       theme_song: new Audio('/sound_effects/theme_song.mp3'),
-      toss_up: new Audio('/sound_effects/toss_up.mp3'),
+      speedup: new Audio('/sound_effects/speedup.mp3'),
       bankrupt: new Audio('/sound_effects/bankrupt.mp3'),
       buzzer: new Audio('/sound_effects/buzzer.mp3'),
       choose_letters: new Audio('/sound_effects/choose_letters.mp3'),
       ding: new Audio('/sound_effects/ding.mp3'),
       puzzle_reveal: new Audio('/sound_effects/puzzle_reveal.mp3'),
       puzzle_solve: new Audio('/sound_effects/puzzle_solve.mp3'),
+      bonus_wheel_music: new Audio('/sound_effects/bonus_wheel_music.mp3'),
     };
 
     // Set looping for specific sounds
     sounds.theme_song.loop = true;
-    sounds.toss_up.loop = true;
+    sounds.speedup.loop = true;
     sounds.choose_letters.loop = true;
 
     // Set volume levels (adjust as needed)
@@ -67,7 +69,7 @@ export const useSounds = () => {
     // Stop only looping sounds
     const loopingSounds = [
       soundsRef.current.theme_song,
-      soundsRef.current.toss_up,
+      soundsRef.current.speedup,
       soundsRef.current.choose_letters
     ];
     
@@ -81,7 +83,7 @@ export const useSounds = () => {
     }
   };
 
-  const playSound = (soundName: keyof SoundMap, options?: { loop?: boolean; stopOthers?: boolean }) => {
+  const playSound = (soundName: keyof SoundMap, options?: { loop?: boolean; stopOthers?: boolean; onEnded?: () => void }) => {
     if (!soundsRef.current || !soundsLoaded) return;
 
     const sound = soundsRef.current[soundName];
@@ -95,6 +97,11 @@ export const useSounds = () => {
     // Stop other sounds if requested
     if (options?.stopOthers) {
       stopAllSounds();
+    }
+
+    // Set up onended callback if provided
+    if (options?.onEnded) {
+      sound.onended = options.onEnded;
     }
 
     // Reset and play the sound
