@@ -378,10 +378,16 @@ export const GameBoard = ({ gameStatus: initialGameStatus, isLoading, error }: G
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{
+        backgroundImage: 'url(/assets/backgrounds/gameplay_background.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'fixed'
+      }}>
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-wof-blue mx-auto mb-4"></div>
-          <p className="text-lg text-gray-600">Loading game...</p>
+          <p className="text-lg text-white font-semibold">Loading game...</p>
         </div>
       </div>
     );
@@ -389,8 +395,18 @@ export const GameBoard = ({ gameStatus: initialGameStatus, isLoading, error }: G
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="bg-white rounded-lg p-8 shadow-lg max-w-md">
+      <div className="min-h-screen flex items-center justify-center" style={{
+        backgroundImage: 'url(/assets/backgrounds/gameplay_background.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'fixed'
+      }}>
+        <div className="rounded-lg p-8 shadow-lg max-w-md" style={{
+          backgroundColor: 'rgba(255, 255, 255, 0.8)',
+          backdropFilter: 'blur(15px)',
+          border: '1px solid rgba(255, 255, 255, 0.2)'
+        }}>
           <div className="text-center">
             <div className="text-red-500 text-4xl mb-4">⚠️</div>
             <h2 className="text-xl font-bold text-gray-800 mb-2">Game Error</h2>
@@ -409,8 +425,18 @@ export const GameBoard = ({ gameStatus: initialGameStatus, isLoading, error }: G
 
   if (!gameStatus) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="bg-white rounded-lg p-8 shadow-lg max-w-md">
+      <div className="min-h-screen flex items-center justify-center" style={{
+        backgroundImage: 'url(/assets/backgrounds/gameplay_background.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'fixed'
+      }}>
+        <div className="rounded-lg p-8 shadow-lg max-w-md" style={{
+          backgroundColor: 'rgba(255, 255, 255, 0.8)',
+          backdropFilter: 'blur(15px)',
+          border: '1px solid rgba(255, 255, 255, 0.2)'
+        }}>
           <div className="text-center">
             <h1 className="text-3xl font-bold text-wof-blue mb-4">🎡 Wheel of Fortune</h1>
             <p className="text-gray-600 mb-6">No active game found.</p>
@@ -426,10 +452,20 @@ export const GameBoard = ({ gameStatus: initialGameStatus, isLoading, error }: G
   const { gameStateText, turnStateText } = getHumanReadableStatus(gameStatus.game_state, gameStatus.turn_state);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen" style={{
+      backgroundImage: 'url(/assets/backgrounds/gameplay_background.png)',
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat',
+      backgroundAttachment: 'fixed'
+    }}>
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-8 rounded-lg p-6" style={{
+          backgroundColor: 'rgba(255, 255, 255, 0.75)',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid rgba(255, 255, 255, 0.2)'
+        }}>
           <h1 className="text-4xl font-bold text-wof-blue mb-2">🎡 Wheel of Fortune</h1>
           <p className="text-lg text-gray-600">
             Round {gameStatus.current_round} of {gameStatus.total_rounds}
@@ -444,7 +480,11 @@ export const GameBoard = ({ gameStatus: initialGameStatus, isLoading, error }: G
 
         {/* Main Puzzle Area */}
         {gameStatus.current_puzzle && (
-          <div className="bg-white rounded-lg shadow-lg mb-8">
+          <div className="rounded-lg shadow-lg mb-8" style={{
+            backgroundColor: 'rgba(255, 255, 255, 0.75)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255, 255, 255, 0.2)'
+          }}>
             <PuzzleDisplay 
               puzzle={gameStatus.current_puzzle} 
               newlyRevealedLetters={newlyRevealedLetters}
@@ -465,7 +505,11 @@ export const GameBoard = ({ gameStatus: initialGameStatus, isLoading, error }: G
         )}
 
         {/* Game Status Info */}
-        <div className="bg-white rounded-lg p-4 shadow-sm mt-6">
+        <div className="rounded-lg p-4 shadow-sm mt-6" style={{
+          backgroundColor: 'rgba(255, 255, 255, 0.75)',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid rgba(255, 255, 255, 0.2)'
+        }}>
           <div className="flex justify-between items-center">
             <div className="text-sm text-gray-600">
               <span className="font-medium">Game State:</span> {gameStateText}

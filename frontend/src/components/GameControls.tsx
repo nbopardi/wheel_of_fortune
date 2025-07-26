@@ -111,7 +111,11 @@ export const GameControls = ({ gameStatus, onSpin, onWheelSelect, onGuessLetter,
   const isTie = winners.length > 1;
 
   return (
-    <div className="bg-white rounded-lg p-6 shadow-lg">
+    <div className="rounded-lg p-6 shadow-lg" style={{
+      backgroundColor: 'rgba(255, 255, 255, 0.75)',
+      backdropFilter: 'blur(10px)',
+      border: '1px solid rgba(255, 255, 255, 0.2)'
+    }}>
       <div className="text-center mb-6">
         {roundCompleted ? (
           <div>
@@ -322,8 +326,12 @@ export const GameControls = ({ gameStatus, onSpin, onWheelSelect, onGuessLetter,
                   className={`w-10 h-10 border-2 rounded font-bold transition-all ${
                     selectedLetter === letter
                       ? 'bg-wof-blue text-white border-wof-blue'
-                      : 'bg-white text-gray-800 border-gray-300 hover:border-wof-blue'
+                      : 'text-gray-800 border-gray-300 hover:border-wof-blue'
                   }`}
+                  style={selectedLetter !== letter ? {
+                    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+                    backdropFilter: 'blur(5px)'
+                  } : undefined}
                 >
                   {letter}
                 </button>
@@ -350,8 +358,12 @@ export const GameControls = ({ gameStatus, onSpin, onWheelSelect, onGuessLetter,
                       ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
                       : selectedLetter === letter
                       ? 'bg-wof-gold text-white border-wof-gold'
-                      : 'bg-white text-gray-800 border-gray-300 hover:border-wof-gold'
+                      : 'text-gray-800 border-gray-300 hover:border-wof-gold'
                   }`}
+                  style={canAffordVowels && selectedLetter !== letter ? {
+                    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+                    backdropFilter: 'blur(5px)'
+                  } : undefined}
                 >
                   {letter}
                 </button>

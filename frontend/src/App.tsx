@@ -45,7 +45,18 @@ function App() {
       <div className="fixed top-4 left-4 z-10">
         <button
           onClick={handleNewGame}
-          className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+          className="text-black px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 transform hover:scale-105 cursor-pointer"
+          style={{
+            backgroundColor: 'rgba(229, 231, 235, 0.8)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255, 255, 255, 0.2)'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = 'rgba(229, 231, 235, 0.9)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'rgba(229, 231, 235, 0.8)';
+          }}
         >
           ← New Game
         </button>

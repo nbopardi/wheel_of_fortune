@@ -83,8 +83,18 @@ export const GameSetup = ({ onStartGame }: GameSetupProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="bg-white rounded-lg shadow-lg p-8 max-w-2xl w-full mx-4">
+    <div className="min-h-screen flex items-center justify-center" style={{
+      backgroundImage: 'url(/assets/backgrounds/gameplay_background.png)',
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat',
+      backgroundAttachment: 'fixed'
+    }}>
+      <div className="rounded-lg shadow-lg p-8 max-w-2xl w-full mx-4" style={{
+        backgroundColor: 'rgba(255, 255, 255, 0.8)',
+        backdropFilter: 'blur(15px)',
+        border: '1px solid rgba(255, 255, 255, 0.2)'
+      }}>
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-wof-blue mb-2">🎡 Wheel of Fortune</h1>

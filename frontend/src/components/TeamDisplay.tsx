@@ -6,7 +6,11 @@ interface TeamDisplayProps {
 
 export const TeamDisplay = ({ teams }: TeamDisplayProps) => {
   return (
-    <div className="bg-white rounded-lg p-4 shadow-sm mb-6">
+    <div className="rounded-lg p-4 shadow-sm mb-6" style={{
+      backgroundColor: 'rgba(255, 255, 255, 0.75)',
+      backdropFilter: 'blur(10px)',
+      border: '1px solid rgba(255, 255, 255, 0.2)'
+    }}>
       <h2 className="text-xl font-bold text-wof-blue mb-3">Teams</h2>
       <div className="space-y-2">
         {teams.map((team) => (

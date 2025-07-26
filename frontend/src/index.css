@@ -27,14 +27,16 @@ body {
 }
 
 .letter-tile-revealed {
-  background-color: white;
+  background-color: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(5px);
   border-color: #1e3a8a;
   color: black;
 }
 
 /* Team card styles */
 .team-card {
-  background-color: white;
+  background-color: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(10px);
   border-radius: 8px;
   border: 2px solid;
   padding: 16px;
@@ -231,7 +233,8 @@ body {
 }
 
 .bg-white {
-  background-color: white;
+  background-color: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
 }
 
 .bg-wof-blue {
